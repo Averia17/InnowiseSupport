@@ -25,12 +25,11 @@ services:
     image: redis
     restart: always
     command: redis-server
-    container_name: 'support_redis'
     ports:
       - '6379:6379'
   celery:
     build: .
-    command: celery -A core worker -B
+    command: celery -A support worker -B
     volumes:
       - .:/code
     links:

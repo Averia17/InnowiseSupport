@@ -1,11 +1,12 @@
-from rest_framework import status, viewsets, mixins
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.api.permissions import IsSupport
-from core.api.serializers import TicketSerializer, TicketDetailSerializer, ProfileSerializer, UserSerializer
+from core.api.serializers import TicketSerializer, TicketDetailSerializer
 from core.models import Ticket, Message
+from core.tasks import hello
 
 
 class TicketViewSet(viewsets.ModelViewSet):
@@ -40,21 +41,16 @@ class TicketViewSet(viewsets.ModelViewSet):
         return Ticket.objects.filter(creator=profile)
 
     def create(self, request, *args, **kwargs):
-        request.data._mutable = True
+        request.POST._mutable = True
         request.data['creator'] = request.user.profile.pk
-        request.data._mutable = False
+        request.POST._mutable = False
         return super().create(request)
 
     # action for post messages in ticket
     @action(methods=['post'], detail=True)
     def post_message(self, request, pk=None):
+        # hello.delay()
         Message.objects.create(sender=request.user.profile,
                                ticket=Ticket.objects.get(pk=pk),
                                text=request.data.get('text'))
         return Response(status=status.HTTP_201_CREATED)
-
-
-# class UserViewSet(mixins.CreateModelMixin):
-#     serializer_class = UserSerializer
-#     def create(self, request, *args, **kwargs):
-#         user =

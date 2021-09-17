@@ -1,12 +1,6 @@
-import json
-
 from django.contrib.auth.models import User
-from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
-
-from .models import Ticket, Profile
-from .api.serializers import TicketSerializer
 
 
 class BaseTestCase(APITestCase):
@@ -17,7 +11,6 @@ class BaseTestCase(APITestCase):
         self.password = 'randomPassword123'
         self.user = User.objects.create_user(
             self.username, self.email, self.password)
-        self.profile = Profile.objects.create(user=self.user)
         self.data = {
             'username': self.username,
             'password': self.password

@@ -170,7 +170,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-CELERY_BROKER_URL = 'redis://support_redis:6379'
+CELERY_BROKER_URL = 'redis://redis:6379'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 

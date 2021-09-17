@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from rest_framework_simplejwt.views import TokenObtainSlidingView, TokenRefreshSlidingView
 from core.api.views import TicketViewSet
 
 router = SimpleRouter()

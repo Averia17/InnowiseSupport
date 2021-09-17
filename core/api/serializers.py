@@ -8,7 +8,7 @@ from core.models import Ticket, Message, Profile
 class UserSerializer(ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'username')
+        fields = ('email', 'username', 'password')
 
 
 class ProfileSerializer(ModelSerializer):
@@ -39,8 +39,8 @@ class TicketDetailSerializer(ModelSerializer):
 
 
 class MessageSerializer(ModelSerializer):
-    #ticket = TicketSerializer()
-    #sender = ProfileSerializer()
+    # ticket = TicketSerializer()
+    # sender = ProfileSerializer()
 
     class Meta:
         model = Message
