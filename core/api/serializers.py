@@ -25,6 +25,19 @@ class TicketSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class TicketDetailSerializer(ModelSerializer):
+    messages = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Ticket
+        fields = '__all__'
+
+    def get_messages(self, obj):
+        messages = Message.objects.select_related('sender').filter(ticket__pk=obj.pk)
+        serialized_messages = MessageSerializer(messages, many=True).data
+        return serialized_messages
+
+
 class MessageSerializer(ModelSerializer):
     #ticket = TicketSerializer()
     #sender = ProfileSerializer()

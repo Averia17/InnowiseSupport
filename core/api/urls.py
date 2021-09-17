@@ -9,6 +9,7 @@ router = SimpleRouter()
 router.register('tickets', TicketViewSet, basename='tickets')
 
 urlpatterns = [
+    path('auth/', include('djoser.urls')),
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
     path('token-verify/', TokenVerifyView.as_view(), name='token-verify')

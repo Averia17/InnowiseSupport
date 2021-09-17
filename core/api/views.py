@@ -1,9 +1,10 @@
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.api.serializers import TicketSerializer, MessageSerializer
+from core.api.permissions import IsSupport
+from core.api.serializers import TicketSerializer, TicketDetailSerializer, ProfileSerializer, UserSerializer
 from core.models import Ticket, Message
 
 
@@ -11,50 +12,49 @@ class TicketViewSet(viewsets.ModelViewSet):
     serializer_class = TicketSerializer
     # lookup_field = 'slug'
     permission_classes = (IsAuthenticated,)
-    queryset = Ticket.objects.all()
 
-    def retrieve(self, request, *args, **kwargs):
-        if Ticket.objects.get(pk=kwargs['pk']).creator != request.user.profile \
-                and request.user.profile.service_type != '2':
-            return Response({'response': 'You dont have permission to the ticket'}, status=status.HTTP_403_FORBIDDEN)
+    action_to_serializer = {
+        "list": TicketSerializer,
+        "retrieve": TicketDetailSerializer,
+        "update": TicketSerializer
+    }
 
-        queryset = Message.objects.select_related('sender').filter(ticket__pk=kwargs['pk'])
-        serializer = MessageSerializer(queryset, many=True)
-        return Response({'messages': serializer.data})
+    def get_serializer_class(self):
+        return self.action_to_serializer.get(
+            self.action,
+            self.serializer_class
+        )
 
-    # support must see all tickets
-    def list(self, request, *args, **kwargs):
-        profile = request.user.profile
+    def get_permissions(self):
+        if self.request.method == 'PUT':
+            permission_classes = [IsSupport]
+            return [permission() for permission in permission_classes]
+        return super().get_permissions()
+
+    # show user tickets or all tickets for support
+    def get_queryset(self, *args, **kwargs):
+        profile = self.request.user.profile
         if profile.service_type == '2':
-            queryset = Ticket.objects.all()
-            serializer = TicketSerializer(queryset, many=True)
-            return Response(serializer.data)
-        else:
-            queryset = Ticket.objects.filter(creator=profile)
-            serializer = TicketSerializer(queryset, many=True)
-            return Response(serializer.data)
+            return Ticket.objects.all()
 
-    def update(self, request, *args, **kwargs):
-        if request.user.profile.service_type != '2':
-            return Response({'response': 'You dont have permission to the put request'},
-                            status=status.HTTP_403_FORBIDDEN)
-        Ticket.objects.filter(pk=kwargs['pk']).update(service_type=request.data.get('service_type'))
+        return Ticket.objects.filter(creator=profile)
 
-        return Response(status=status.HTTP_200_OK)
+    def create(self, request, *args, **kwargs):
+        request.data._mutable = True
+        request.data['creator'] = request.user.profile.pk
+        request.data._mutable = False
+        return super().create(request)
 
+    # action for post messages in ticket
     @action(methods=['post'], detail=True)
     def post_message(self, request, pk=None):
-        text = request.data.get('text')
-        sender = request.user.profile
-        ticket = Ticket.objects.get(pk=pk)
-        Message.objects.create(sender=sender, ticket=ticket, text=text)
+        Message.objects.create(sender=request.user.profile,
+                               ticket=Ticket.objects.get(pk=pk),
+                               text=request.data.get('text'))
         return Response(status=status.HTTP_201_CREATED)
 
-    # def create(self, request, *args, **kwargs):
-    #     post_data = request.data
-    #     print(post_data)
-    #     ticket = Ticket.objects.create(service_type='1', title=post_data.get('title'))
-    #     ticket.save()
-    #     Message.objects.create(sender=request.user.auth_token, text=post_data.get('text'), ticket=ticket)
-    #     serializer = TicketSerializer()
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# class UserViewSet(mixins.CreateModelMixin):
+#     serializer_class = UserSerializer
+#     def create(self, request, *args, **kwargs):
+#         user =
