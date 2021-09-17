@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from core.api.permissions import IsSupport
 from core.api.serializers import TicketSerializer, TicketDetailSerializer
 from core.models import Ticket, Message
-from core.tasks import hello
+from core.tasks import send_mail_task
 
 
 class TicketViewSet(viewsets.ModelViewSet):
@@ -49,8 +49,12 @@ class TicketViewSet(viewsets.ModelViewSet):
     # action for post messages in ticket
     @action(methods=['post'], detail=True)
     def post_message(self, request, pk=None):
-        # hello.delay()
-        Message.objects.create(sender=request.user.profile,
-                               ticket=Ticket.objects.get(pk=pk),
+        ticket = Ticket.objects.get(pk=pk)
+        sender = request.user.profile
+
+        Message.objects.create(sender=sender,
+                               ticket=ticket,
                                text=request.data.get('text'))
+        send_mail_task.delay(ticket.pk, sender.pk)
+
         return Response(status=status.HTTP_201_CREATED)
