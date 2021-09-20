@@ -9,7 +9,6 @@ from core.models import Ticket, Profile
 def send_mail_task(ticket_pk, sender_pk):
     ticket = Ticket.objects.get(pk=ticket_pk)
     sender = Profile.objects.get(pk=sender_pk)
-
     if sender.service_type == '2':
         send_mail(
             'Ticket ' + str(ticket.pk),

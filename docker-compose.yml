@@ -7,14 +7,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=Support
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=${NAME}
+      - POSTGRES_USER=${USER}
+      - POSTGRES_PASSWORD=${PASSWORD}
   web:
     build:
       context: ""
-
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
@@ -28,14 +26,16 @@ services:
     ports:
       - '6379:6379'
   celery:
-    build: .
+    build:
+      context: .
+      dockerfile: celery/Dockerfile
     command: celery -A support worker -B
     volumes:
       - .:/code
     links:
       - redis
     depends_on:
-      - web
+      - db
       - redis
 volumes:
   postgres_data:

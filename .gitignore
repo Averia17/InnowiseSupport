@@ -1,1 +1,6 @@
 env
+.env
+celerybeat-schedule
+__pycache__/
+
+.idea
