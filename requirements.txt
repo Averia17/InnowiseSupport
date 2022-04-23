@@ -15,7 +15,7 @@ coreschema==0.0.4
 cryptography==3.4.8
 defusedxml==0.7.1
 distlib==0.3.2
-Django==3.2.7
+Django==3.2.13
 django-filter==2.4.0
 django-templated-mail==1.1.1
 djangorestframework==3.12.4
